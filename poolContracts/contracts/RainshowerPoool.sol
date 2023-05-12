@@ -102,6 +102,7 @@ contract RainshowerPoool is PooolToken {
 			address _marginToken,
 			uint64 _expiry
 		) = _adapter.call(_borrowData);
+		
 		// Call RiskController to see if we can open a position with the data
 		if (!riskController.assessPair(_borrowToken)) {
 			Risk();
