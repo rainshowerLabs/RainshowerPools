@@ -18,7 +18,7 @@ contract TotalReturnSwapDataAdapter {
     }
 
 	function decode (bytes memory _data) public returns (params memory trs) {
-		trs = abi.decode(_data, (swapData));
+		trs = abi.decode(_data, (_data));
 		return trs;
 	}	
 }

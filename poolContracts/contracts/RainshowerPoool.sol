@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./RiskController/interface/IRiskController.sol";
 import "./PooolToken/PooolToken.sol";
 import "./interface/IRainshowerFactory.sol";
+import "./interface/IRainshowerBorrow.sol";
 import "./Events.sol";
 import "./DataAdapters/TotalReturnSwapAdapter.sol";
 
@@ -14,7 +15,6 @@ contract RainshowerPoool is PooolToken, Events {
 
 	// Errors
 	error Risk();
-	error Unauthorized();
 	error PooolDoesNotExist();
 
 	// Risk controller gives you a go/no go if you can open a borrow
@@ -22,7 +22,7 @@ contract RainshowerPoool is PooolToken, Events {
 	// Factory address
 	IRainshowerFactory public factory;
 	// DAO
-	address public governance;
+	address public governanceContract;
 	// Available token balances
 	mapping (address => uint256) availableTokenBalance;
 	// Interest bearing tokens
@@ -32,13 +32,13 @@ contract RainshowerPoool is PooolToken, Events {
 
 	constructor(address _riskController, address _factory) {
 		riskController = IRiskController(_riskController);
-		governance = msg.sender;
+		governanceContract = msg.sender;
 		factory = _factory;
 	}
 
 	// Adds a new token and deploys new PooolToken for that asset
 	function addAsset (address _asset) external {
-		if (msg.sender != governance) {
+		if (msg.sender != governanceContract) {
 			Unauthorized();
 		}
 		// Get the name of the `_asset` and add a `r` in front
@@ -52,7 +52,7 @@ contract RainshowerPoool is PooolToken, Events {
 	
 	// Adds a new borrow adapter to the borrow key
 	function addAdapter (address _adapter, address _borrow) external {
-		if (msg.sender != governance) {
+		if (msg.sender != governanceContract) {
 			Unauthorized();
 		}
 		dataAdapters[_borrow] = _adapter;

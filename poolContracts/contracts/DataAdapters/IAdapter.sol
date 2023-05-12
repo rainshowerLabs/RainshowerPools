@@ -2,5 +2,5 @@
 pragma solidity ^0.8.0;
 
 interface interfaceName {
-	function decode (bytes memory _data) external returns (swapData memory swap);
+	function decode (bytes memory _data) external returns (bytes memory _siu);
 }
