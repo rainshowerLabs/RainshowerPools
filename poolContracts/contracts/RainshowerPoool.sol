@@ -91,10 +91,22 @@ contract RainshowerPoool is PooolToken {
 		address _module,
 		uint64 _expiry,
 		bytes memory _borrowData
-		) returns(address _res) internal {
-		// Check if the borrow amount is less than the available amount
+		) returns(address _res) public {
+
+		// Get the adapter address
+		address _adapter = moduleAdapters[_module];
+		// Call the adapter with the borrow data
+		(
+			address _borrowToken,
+			uint256 _borrowTokenAmount,
+			address _marginToken,
+			uint64 _expiry
+		) = _adapter.call(_borrowData);
+		// Call RiskController to see if we can open a position with the data
+		if (!riskController.assessPair(_borrowToken)) {
+			Risk();
+		}
+		// Get the Poool token address of the token we're depositing
 
 	}
-	
-
 }
