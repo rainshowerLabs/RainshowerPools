@@ -15,7 +15,7 @@ contract RainshowerPoool is PooolToken {
 
 	IRiskController public riskController;
 	address public governance;
-	mapping (address => uint256) tokenBalances;
+	mapping (address => uint256) availableTokenBalance;
 	mapping (address => address) pooolContracts;
 
 	constructor(address _riskController) {
@@ -48,7 +48,9 @@ contract RainshowerPoool is PooolToken {
 		PooolToken(_token).transferFrom(msg.sender, address(this), _amount);
 		
 		// Add `_amount` to the overall balances
-		tokenBalances[_token] += _amount;
+		unchecked {
+			availableTokenBalance[_token] += _amount;
+		}
 
 		// Mint the _amount to the msg.sender
 		PooolToken(_pooolToken).mint(msg.sender, _amount);
@@ -60,13 +62,16 @@ contract RainshowerPoool is PooolToken {
 		if (_pooolToken == address(0)) {
 			PooolDoesNotExist();
 		}
+
 		// Burn the _amount to the msg.sender
 		PooolToken(_pooolToken).burn(msg.sender, _amount);
 
 		// Remove `_amount` to the overall balances
-		tokenBalances[_token] -= _amount;
+		// Reverts if youre withdrawing more than available
+		availableTokenBalance[_token] -= _amount;
 
 		// Transferfrom the msg.sender to this contract
 		PooolToken(_token).transfer(msg.sender, _amount);
 	}
+
 }
