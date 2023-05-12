@@ -103,21 +103,18 @@ contract RainshowerPoool is PooolToken, Events {
 		// Get the adapter address
 		address _adapter = dataAdapters[_module];
 		// Call the adapter with the borrow data
-		(
-			address _borrowToken,
-			uint256 _borrowTokenAmount,
-			address _marginToken,
-		) = _adapter.call(_borrowData);
+		// TODO: implement adapters.
 
 		// Call RiskController to see if we can open a position with the data
-		if (!riskController.assessPair(_borrowToken)) {
+		// funny address
+		if (!riskController.assessPair(address(0))) {
 			Risk();
 		}
 
 		// Call factory to create borrow with data
 		_res = IRainshowerFactory(factory).createBorrow(_module, _expiry, _borrowData);
 
-		// Approce the borrow
+		// Approve the borrow
 		PooolToken(_borrowToken).approve(_res, _borrowTokenAmount);
 
 		IRainshowerBorrow(_res).fundWithTokens();
