@@ -1,3 +1,3 @@
 # Rainshower pool
 
-Rainshower works a lot like a state channel layer 2. this is good for a lot of things but not flexibility. 
+Rainshower is an undercollateralized lending protocol. It functions by controlling asset flows between counterparties. This is not very user friendly. This repo demonstrates how this can be solved.
