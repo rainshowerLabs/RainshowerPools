@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: 3BSD
 pragma solidity ^0.8.0;
 
 import "./RiskController/interface/IRiskController.sol";
 import "./PooolToken/PooolToken.sol";
+import "./interface/IRainshowerFactory.sol";
 
 /**
  * The RainshowerPoool manages lending
@@ -15,6 +17,8 @@ contract RainshowerPoool is PooolToken {
 
 	// Risk controller gives you a go/no go if you can open a borrow
 	IRiskController public riskController;
+	// Factory address
+	IRainshowerFactory public factory;
 	// DAO
 	address public governance;
 	// Available token balances
@@ -24,9 +28,10 @@ contract RainshowerPoool is PooolToken {
 	// Adapters to decode module data
 	mapping (address => address) moduleAdapters;
 
-	constructor(address _riskController) {
+	constructor(address _riskController, address _factory) {
 		riskController = IRiskController(_riskController);
 		governance = msg.sender;
+		factory = _factory;
 	}
 
 	// Adds a new token and deploys new PooolToken for that asset
@@ -100,14 +105,16 @@ contract RainshowerPoool is PooolToken {
 			address _borrowToken,
 			uint256 _borrowTokenAmount,
 			address _marginToken,
-			uint64 _expiry
 		) = _adapter.call(_borrowData);
-		
+
 		// Call RiskController to see if we can open a position with the data
 		if (!riskController.assessPair(_borrowToken)) {
 			Risk();
 		}
-		// Get the Poool token address of the token we're depositing
+
+		// Call factory to create borrow with data
+		_res = IRainshowerFactory(factory).createBorrow(_module, _expiry, _borrowData);
+
 
 	}
 }
