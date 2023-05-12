@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 contract UniswapDataAdapter {
 	struct swapData {
-	    address quoteToken;
+	    address quoteToken; // this 
 	    uint128 quoteAmount;
 	    address baseToken;
 	    address oracleAddress;

@@ -23,8 +23,6 @@ contract RainshowerPoool is PooolToken, Events {
 	IRainshowerFactory public factory;
 	// DAO
 	address public governanceContract;
-	// Available token balances
-	mapping (address => uint256) availableTokenBalance;
 	// Interest bearing tokens
 	mapping (address => address) pooolTokenContracts;
 	// Adapters to decode module data
@@ -67,11 +65,6 @@ contract RainshowerPoool is PooolToken, Events {
 		// Transferfrom the msg.sender to this contract
 		PooolToken(_token).transferFrom(msg.sender, address(this), _amount);
 		
-		// Add `_amount` to the overall balances
-		unchecked {
-			availableTokenBalance[_token] += _amount;
-		}
-
 		// Mint the _amount to the msg.sender
 		PooolToken(_pooolToken).mint(msg.sender, _amount);
 	}
@@ -85,10 +78,6 @@ contract RainshowerPoool is PooolToken, Events {
 
 		// Burn the _amount to the msg.sender
 		PooolToken(_pooolToken).burn(msg.sender, _amount);
-
-		// Remove `_amount` to the overall balances
-		// Reverts if youre withdrawing more than available
-		availableTokenBalance[_token] -= _amount;
 
 		// Transferfrom the msg.sender to this contract
 		PooolToken(_token).transfer(msg.sender, _amount);
