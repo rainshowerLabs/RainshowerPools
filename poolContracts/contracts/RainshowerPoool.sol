@@ -5,6 +5,7 @@ import "./RiskController/interface/IRiskController.sol";
 import "./PooolToken/PooolToken.sol";
 import "./interface/IRainshowerFactory.sol";
 import "./Events.sol
+import "./DataAdapters/TotalReturnSwapAdapter.sol";
 
 /**
  * The RainshowerPoool manages lending
