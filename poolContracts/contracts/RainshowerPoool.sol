@@ -117,6 +117,11 @@ contract RainshowerPoool is PooolToken, Events {
 		// Call factory to create borrow with data
 		_res = IRainshowerFactory(factory).createBorrow(_module, _expiry, _borrowData);
 
+		// Approce the borrow
+		PooolToken(_borrowToken).approve(_res, _borrowTokenAmount);
+
+		IRainshowerBorrow(_res).fundWithTokens();
+
 		getQuoteEvent(_res);
 		return _res;
 	}
