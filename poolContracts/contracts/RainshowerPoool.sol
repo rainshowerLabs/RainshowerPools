@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./RiskController/interface/IRiskController.sol";
 import "./PooolToken/PooolToken.sol";
 import "./interface/IRainshowerFactory.sol";
-import "./Events.sol
+import "./Events.sol";
 import "./DataAdapters/TotalReturnSwapAdapter.sol";
 
 /**
@@ -37,7 +37,7 @@ contract RainshowerPoool is PooolToken, Events {
 	}
 
 	// Adds a new token and deploys new PooolToken for that asset
-	function addAsset (address _asset) external public {
+	function addAsset (address _asset) external {
 		if (msg.sender != governance) {
 			Unauthorized();
 		}
@@ -51,14 +51,14 @@ contract RainshowerPoool is PooolToken, Events {
 	}
 	
 	// Adds a new borrow adapter to the borrow key
-	function addAdapter (address _adapter, address _borrow) {
+	function addAdapter (address _adapter, address _borrow) external {
 		if (msg.sender != governance) {
 			Unauthorized();
 		}
 		dataAdapters[_borrow] = _adapter;
 	}
 
-	function deposit (address _token, uint256 _amount) external public {
+	function deposit (address _token, uint256 _amount) external {
 		// Get the Poool token address of the token we're depositing
 		address _pooolToken = pooolTokenContracts[_token];
 		if (_pooolToken == address(0)) {
@@ -76,7 +76,7 @@ contract RainshowerPoool is PooolToken, Events {
 		PooolToken(_pooolToken).mint(msg.sender, _amount);
 	}
 
-	function withdraw (address _token, uint256 _amount) external public {
+	function withdraw (address _token, uint256 _amount) external {
 		// Get the Poool token address of the token we're depositing
 		address _pooolToken = pooolTokenContracts[_token];
 		if (_pooolToken == address(0)) {
@@ -98,7 +98,7 @@ contract RainshowerPoool is PooolToken, Events {
 		address _module,
 		uint64 _expiry,
 		bytes memory _borrowData
-		) returns(address _res) public {
+		) external returns(address _res) {
 
 		// Get the adapter address
 		address _adapter = dataAdapters[_module];

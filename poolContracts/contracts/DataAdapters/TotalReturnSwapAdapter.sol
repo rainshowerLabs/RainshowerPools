@@ -17,7 +17,7 @@ contract TotalReturnSwapDataAdapter {
         uint128 takerDeposit;
     }
 
-	function decode (bytes memory _data) returns (params memory trs) public {
+	function decode (bytes memory _data) public returns (params memory trs) {
 		trs = abi.decode(_data, (swapData));
 		return trs;
 	}	

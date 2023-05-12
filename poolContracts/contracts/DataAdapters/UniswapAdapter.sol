@@ -14,7 +14,7 @@ contract UniswapDataAdapter {
 	    address pool;
 	}
 
-	function decode (bytes memory _data) returns (swapData memory swap) public {
+	function decode (bytes memory _data) public returns (swapData memory swap) {
 		swap = abi.decode(_data, (swapData));
 		return swap;
 	}	
