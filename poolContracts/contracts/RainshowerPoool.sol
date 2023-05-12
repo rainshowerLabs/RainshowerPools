@@ -27,7 +27,7 @@ contract RainshowerPoool is PooolToken, Events {
 	// Interest bearing tokens
 	mapping (address => address) pooolTokenContracts;
 	// Adapters to decode module data
-	mapping (address => address) moduleAdapters;
+	mapping (address => address) dataAdapters;
 
 	constructor(address _riskController, address _factory) {
 		riskController = IRiskController(_riskController);
@@ -54,7 +54,7 @@ contract RainshowerPoool is PooolToken, Events {
 		if (msg.sender != governance) {
 			Unauthorized();
 		}
-		moduleAdapters[_borrow] = _adapter;
+		dataAdapters[_borrow] = _adapter;
 	}
 
 	function deposit (address _token, uint256 _amount) external public {
@@ -100,7 +100,7 @@ contract RainshowerPoool is PooolToken, Events {
 		) returns(address _res) public {
 
 		// Get the adapter address
-		address _adapter = moduleAdapters[_module];
+		address _adapter = dataAdapters[_module];
 		// Call the adapter with the borrow data
 		(
 			address _borrowToken,
