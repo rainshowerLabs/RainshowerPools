@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import "./RiskController/interface/IRiskController.sol";
 import "./PooolToken/PooolToken.sol";
 import "./interface/IRainshowerFactory.sol";
+import "./Events.sol
 
 /**
  * The RainshowerPoool manages lending
  */
-contract RainshowerPoool is PooolToken {
+contract RainshowerPoool is PooolToken, Events {
 
 	// Errors
 	error Risk();
@@ -115,6 +116,7 @@ contract RainshowerPoool is PooolToken {
 		// Call factory to create borrow with data
 		_res = IRainshowerFactory(factory).createBorrow(_module, _expiry, _borrowData);
 
-
+		getQuoteEvent(_res);
+		return _res;
 	}
 }
