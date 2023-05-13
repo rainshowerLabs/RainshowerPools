@@ -92,13 +92,17 @@ contract RainshowerPoool is Events {
 		// Gets the balanceOf address(this) of the `_token`
 		uint256 _poolBalance = PooolToken(_token).balanceOf(address(this));
 		// Gets the totalSupply of the `_token`
-		uint256 _totalSupply = PooolToken(_token).totalSupply();
-
+		uint256 _totalSupply = PooolToken(pooolTokenContracts[_token]).totalSupply();
 		// Divide `_poolBalance` by `_totalSupply` to get the utilizatio 
 		uint256 _utilization = FPML.divWadUp(_poolBalance, _totalSupply);
 
-		// Really primitive, replace this later. eventually
-		uint256 _rate = FPML.divWadUp(1 ether, _utilization) / 10;
+		uint256 _rate;
+		if (_utilization > 800000000000000000) {
+			_rate = FPML.mulWadUp(FPML.divWadUp(_utilization, 800000000000000000), 20000000000000000);
+		} else {
+			_rate = 1000000000000000000 + FPML.mulWadUp(FPML.divWadUp((_utilization-800000000000000000), 20000000000000000), 20000000000000000);
+
+		}
 
 		latestRate = _rate;
 
