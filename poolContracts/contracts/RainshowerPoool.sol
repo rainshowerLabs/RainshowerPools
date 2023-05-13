@@ -109,7 +109,6 @@ contract RainshowerPoool is Events {
 		return _rate;
 	}
 
-
 	function getQuote (
 		address _module,
 		bytes memory _borrowData
