@@ -93,6 +93,7 @@ contract RainshowerPoool is PooolToken, Events {
 		address _adapter = dataAdapters[_module];
 		// Call the adapter with the borrow data
 		// TODO: implement adapters.
+		(address _borrowToken, uint128 _borrowTokenAmount) = IAdapter(_adapter).decode(_borrowData);
 
 		// Call RiskController to see if we can open a position with the data
 		// funny address
