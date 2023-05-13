@@ -30,6 +30,8 @@ contract RainshowerPoool is Events {
 	mapping (address => address) pooolTokenContracts;
 	// Adapters to decode module data
 	mapping (address => address) dataAdapters;
+	// This is horrible, but i dont want to deal with events
+	uint256 public latestRate;
 
 	constructor(address _riskController, address _factory) {
 		riskController = IRiskController(_riskController);
@@ -97,6 +99,8 @@ contract RainshowerPoool is Events {
 
 		// Really primitive, replace this later. eventually
 		uint256 _rate = FPML.mulWadUp(FPML.divWadUp(1 ether, _utilization), 10 ether);
+
+		latestRate = _rate;
 
 		return _rate;
 	}
