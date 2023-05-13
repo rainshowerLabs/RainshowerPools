@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 const fWETH = "0x666E4018aD77127E3273bA391C60a60AD7244451";
 const fUSDC = "0x617c42dB45b8D1F2cE4Ec29156de8BBbb5e41F6b";
 const pool = "0xc260a0bb4040f82a28915859b3fc43a2e860e0bf";
-const fee = "300";
+const fee = "3000";
 const period = "1";
 const swapRouterAddress = '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45';
 
@@ -340,6 +340,57 @@ const OracleABI = [
     }
   ]
 
+const BorrowABI = [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_moduleAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "uint64",
+          "name": "_expiry",
+          "type": "uint64"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "close",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_extraMargin",
+          "type": "uint256"
+        }
+      ],
+      "name": "fundWithMarginAndOpen",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "fundWithTokens",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ]
+
 const tokenABI =
   require("../artifacts/contracts/PooolToken/PooolToken.sol/ERC20.json").abi;
 
@@ -505,7 +556,7 @@ describe("Pool Tests", function () {
         oracleAddress: oracle.address,
         poolFee: fee,
         period: period,
-        maintanenceMargin: "20000000000000000",
+        maintanenceMargin: "120000000000000000",
         swapRouterAddress: swapRouterAddress,
         pool: pool
       }
@@ -531,6 +582,18 @@ describe("Pool Tests", function () {
     console.log(latestRates);
 
     expect(latestRates).to.not.equal('0');
+  });
+
+  it("Should borrow", async function () {
+    const [signer] = await ethers.getSigners();
+
+    // approve the borrow address with fUSDC
+    const token = await ethers.getContractAt(tokenABI, fUSDC);
+    await token.approve(latestBorrow, '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+
+    // create new borrow instance
+    const borrow = await ethers.getContractAt(BorrowABI, latestBorrow, signer);
+    await borrow.fundWithMarginAndOpen('1000', {gasLimit: 10000000});
   });
 
 });
