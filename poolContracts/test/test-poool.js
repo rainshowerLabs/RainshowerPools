@@ -272,3 +272,30 @@ describe("Deploy adapters", function () {
   });
 });
 
+// Test deposit into poool
+describe("Deposit into poool", function () {
+  it("Should deposit into the poool", async function () {
+    // Approve the poool to spend the tokens
+    await fWETH.approve(pooolAddress, '10000');
+    // Deposit fWETH into poool
+    await poool.deposit(fWETH, '10000');
+
+    // Check that the poool has the tokens
+    expect(await fWETH.balanceOf(pooolAddress)).to.equal('10000');
+    });
+  });
+
+// Test withdraw from poool
+describe("Withdraw from poool", function () {
+  it("Should withdraw from the poool", async function () {
+    // Revert if we try to withdraw too much
+    expect(await poool.withdraw(fWETH, '10001')).to.throw;
+    // Withdraw fWETH from poool
+    await poool.withdraw(fWETH, '10000');
+    // Check that the poool has no tokens
+    expect(await fWETH.balanceOf(pooolAddress)).to.equal('0');
+  });
+});
+
+// Test the getquote thing
+
