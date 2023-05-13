@@ -521,8 +521,8 @@ describe("Pool Tests", function () {
     expect(latestBorrow.quoteToken).to.not.equal('0x0000000000000000000000000000000000000000')
   });
 
-  // it("Should get interest rates", async function () {
+  it("Should get interest rates", async function () {
 
-  // });
+  });
 
 });
