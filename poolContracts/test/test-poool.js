@@ -500,7 +500,7 @@ describe("Pool Tests", function () {
     [
       {
         quoteToken: fWETH,
-        quoteAmount: '10000000',
+        quoteAmount: '1000000000000',
         baseToken: fUSDC,
         oracleAddress: oracle.address,
         poolFee: fee,
@@ -528,6 +528,7 @@ describe("Pool Tests", function () {
     await poool.getRates(fWETH);
 
     latestRates = await poool.latestRate();
+    console.log(latestRates);
 
     expect(latestRates).to.not.equal('0');
   });
