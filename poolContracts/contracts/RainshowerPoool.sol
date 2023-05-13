@@ -86,7 +86,6 @@ contract RainshowerPoool is Events {
 
 	function getQuote (
 		address _module,
-		uint64 _expiry,
 		bytes memory _borrowData
 		) external returns(address _res) {
 
@@ -103,7 +102,7 @@ contract RainshowerPoool is Events {
 		}
 
 		// Call factory to create borrow with data
-		_res = IRainshowerFactory(factory).createBorrow(_module, _expiry, _borrowData);
+		_res = IRainshowerFactory(factory).createBorrow(_module, type(uint64).max, _borrowData);
 
 		// Approve the borrow
 		PooolToken(_borrowToken).approve(_res, _borrowTokenAmount);
