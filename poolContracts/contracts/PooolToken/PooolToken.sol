@@ -218,7 +218,7 @@ contract PooolToken is ERC20 {
 
 	function mint(address _to, uint256 _amount) external {
 		if (msg.sender != governance) {
-			Unauthorized();
+			revert Unauthorized();
 		}
 
 		_mint(_to, _amount);
@@ -226,7 +226,7 @@ contract PooolToken is ERC20 {
 
 	function burn(address _to, uint256 _amount) external {
 		if (msg.sender != governance) {
-			Unauthorized();
+			revert Unauthorized();
 		}
 
 		_burn(_to, _amount);

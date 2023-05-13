@@ -2,5 +2,5 @@
 pragma solidity ^0.8.0;
 
 interface IRiskController {
-	function assessPair (address _uniswapPair) external view returns(bool);
+	function assessPair (address _uniswapPair) external pure returns(bool);
 }

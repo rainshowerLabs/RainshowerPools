@@ -38,7 +38,7 @@ contract RainshowerPoool is Events {
 	// Adds a new token and deploys new PooolToken for that asset
 	function addAsset (address _asset) external {
 		if (msg.sender != governanceContract) {
-			Unauthorized();
+			revert Unauthorized();
 		}
 		// Get the name of the `_asset` and add a `r` in front
 		string memory _name = string(abi.encodePacked("r", PooolToken(_asset).name()));
@@ -52,7 +52,7 @@ contract RainshowerPoool is Events {
 	// Adds a new borrow adapter to the borrow key
 	function addAdapter (address _adapter, address _borrow) external {
 		if (msg.sender != governanceContract) {
-			Unauthorized();
+			revert Unauthorized();
 		}
 		dataAdapters[_borrow] = _adapter;
 	}
@@ -61,7 +61,7 @@ contract RainshowerPoool is Events {
 		// Get the Poool token address of the token we're depositing
 		address _pooolToken = pooolTokenContracts[_token];
 		if (_pooolToken == address(0)) {
-			PooolDoesNotExist();
+			revert PooolDoesNotExist();
 		}
 		// Transferfrom the msg.sender to this contract
 		PooolToken(_token).transferFrom(msg.sender, address(this), _amount);
@@ -74,7 +74,7 @@ contract RainshowerPoool is Events {
 		// Get the Poool token address of the token we're depositing
 		address _pooolToken = pooolTokenContracts[_token];
 		if (_pooolToken == address(0)) {
-			PooolDoesNotExist();
+			revert PooolDoesNotExist();
 		}
 
 		// Burn the _amount to the msg.sender
@@ -99,7 +99,7 @@ contract RainshowerPoool is Events {
 		// Call RiskController to see if we can open a position with the data
 		// funny address
 		if (!riskController.assessPair(address(0))) {
-			Risk();
+			revert Risk();
 		}
 
 		// Call factory to create borrow with data
@@ -110,7 +110,7 @@ contract RainshowerPoool is Events {
 
 		IRainshowerBorrow(_res).fundWithTokens();
 
-		getQuoteEvent(_res);
+		emit getQuoteEvent(_res);
 		return _res;
 	}
 }
