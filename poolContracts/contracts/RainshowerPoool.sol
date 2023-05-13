@@ -98,7 +98,7 @@ contract RainshowerPoool is Events {
 		uint256 _utilization = FPML.divWadUp(_poolBalance, _totalSupply);
 
 		// Really primitive, replace this later. eventually
-		uint256 _rate = FPML.mulWadUp(FPML.divWadUp(1 ether, _utilization), 10 ether);
+		uint256 _rate = FPML.divWadUp(1 ether, _utilization) / 10;
 
 		latestRate = _rate;
 
