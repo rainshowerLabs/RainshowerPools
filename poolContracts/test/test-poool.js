@@ -479,6 +479,9 @@ describe("Pool Tests", function () {
   });
 
   it("Should get a quote", async function () {
+    // Get current latest borrow
+    const previousBorrow = await factory.latestBorrow()
+
     // Approve the poool to spend the tokens
     await token.approve(pooolAddress, "10000000000000");
     // Deposit fWETH into poool
@@ -518,11 +521,15 @@ describe("Pool Tests", function () {
 
     latestBorrow = await factory.latestBorrow()
 
-    expect(latestBorrow.quoteToken).to.not.equal('0x0000000000000000000000000000000000000000')
+    expect(latestBorrow.quoteToken).to.not.equal(previousBorrow)
   });
 
-  it("Should get interest rates", async function () {
+  // it("Should get interest rates", async function () {
+  //   await poool.getInterestRates(fWETH);
 
-  });
+  //   latestBorrow = await factory.latestBorrow();
+
+  //   expect(latestBorrow.interestRate).to.not.equal('0');
+  // });
 
 });

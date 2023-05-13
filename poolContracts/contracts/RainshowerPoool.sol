@@ -8,7 +8,7 @@ import "./interface/IRainshowerBorrow.sol";
 import "./Events.sol";
 import "./DataAdapters/IAdapter.sol";
 
-import {FixedPointMathLib as FPML} from "../../lib/FixedPointMathLib.sol";
+import {FixedPointMathLib as FPML} from "./lib/FixedPointMathLib.sol";
 
 /**
  * The RainshowerPoool manages lending
@@ -96,7 +96,7 @@ contract RainshowerPoool is Events {
 		uint256 _utilization = FPML.divWadUp(_poolBalance, _totalSupply);
 
 		// Really primitive, replace this later. eventually
-		uint256 _rate = FPML.mulWadUp(FPML.divWadUp(1 ether, _utilization), 10 ether)
+		uint256 _rate = FPML.mulWadUp(FPML.divWadUp(1 ether, _utilization), 10 ether);
 
 		return _rate;
 	}
