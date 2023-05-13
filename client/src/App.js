@@ -1,23 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./index.css";
+import Navbar from "./components/Navbar";
+import MainContent from "./components/MainContent";
+
+// Import the ethers library
+// const { ethers } = window;
+
+// Connect to an Ethereum provider
+// const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+// Get the signer (the user's account)
+// const signer = provider.getSigner();
+
+// The address of your smart contract
+// const contractAddress = '0x...';
+
+// The ABI (Application Binary Interface) of your smart contract
+// const contractABI = [...];
+
+// Create a contract instance
+// const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <MainContent />
     </div>
   );
 }
