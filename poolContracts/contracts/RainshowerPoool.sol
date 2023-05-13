@@ -6,7 +6,7 @@ import "./PooolToken/PooolToken.sol";
 import "./interface/IRainshowerFactory.sol";
 import "./interface/IRainshowerBorrow.sol";
 import "./Events.sol";
-import "./DataAdapters/TotalReturnSwapAdapter.sol";
+import "./DataAdapters/IAdapter.sol";
 
 /**
  * The RainshowerPoool manages lending
