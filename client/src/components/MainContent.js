@@ -5,7 +5,7 @@ import AssetBorrow from "./AssetBorrow";
 const assets = [
   {
     id: 1,
-    name: "Asset 1",
+    name: "USDC",
     walletBalance: 500,
     totalSupply: 1000,
     borrowRate: "5%",
@@ -15,7 +15,7 @@ const assets = [
   },
   {
     id: 2,
-    name: "Asset 2",
+    name: "WETH",
     walletBalance: 800,
     totalSupply: 2000,
     borrowRate: "4%",
