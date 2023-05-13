@@ -524,12 +524,12 @@ describe("Pool Tests", function () {
     expect(latestBorrow.quoteToken).to.not.equal(previousBorrow)
   });
 
-  // it("Should get interest rates", async function () {
-  //   await poool.getInterestRates(fWETH);
+  it("Should get interest rates", async function () {
+    await poool.getRates(fWETH);
 
-  //   latestBorrow = await factory.latestBorrow();
+    latestRates = await poool.latestRate();
 
-  //   expect(latestBorrow.interestRate).to.not.equal('0');
-  // });
+    expect(latestRates).to.not.equal('0');
+  });
 
 });
