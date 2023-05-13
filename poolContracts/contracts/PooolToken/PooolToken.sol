@@ -212,7 +212,7 @@ contract PooolToken is ERC20 {
 	// Errors
 	error Unauthorized();
 
-	constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+	constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol, 18) {
 		governance = msg.sender;
 	}
 

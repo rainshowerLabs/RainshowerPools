@@ -11,11 +11,12 @@ import "./DataAdapters/IAdapter.sol";
 /**
  * The RainshowerPoool manages lending
  */
-contract RainshowerPoool is PooolToken, Events {
+contract RainshowerPoool is Events {
 
 	// Errors
 	error Risk();
 	error PooolDoesNotExist();
+	error Unauthorized();
 
 	// Risk controller gives you a go/no go if you can open a borrow
 	IRiskController public riskController;
@@ -31,7 +32,7 @@ contract RainshowerPoool is PooolToken, Events {
 	constructor(address _riskController, address _factory) {
 		riskController = IRiskController(_riskController);
 		governanceContract = msg.sender;
-		factory = _factory;
+		factory = IRainshowerFactory(_factory);
 	}
 
 	// Adds a new token and deploys new PooolToken for that asset
