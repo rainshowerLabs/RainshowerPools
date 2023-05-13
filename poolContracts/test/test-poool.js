@@ -185,8 +185,7 @@ const tokenABI =
   require("../artifacts/contracts/PooolToken/PooolToken.sol/ERC20.json").abi;
 
 describe("Pool Tests", function () {
-  let riskAddress, factoryAddress, pooolAddress;
-  let poool;
+  let riskAddress, factoryAddress, pooolAddress, poool;
   let Adapter;
   let UniModuleAddress, TrsModuleAddress;
   let token;
@@ -215,7 +214,7 @@ describe("Pool Tests", function () {
     const factory = await Factory.deploy();
 
     await factory.deployed();
-    const factoryAddress = await factory.address;
+    factoryAddress = await factory.address;
 
     expect(factoryAddress).to.not.equal(
       "0x0000000000000000000000000000000000000000"
@@ -250,7 +249,7 @@ describe("Pool Tests", function () {
     const uniModule = await UniModule.deploy();
 
     await uniModule.deployed();
-    const UniModuleAddress = await uniModule.address;
+    UniModuleAddress = await uniModule.address;
 
     expect(UniModuleAddress).to.not.equal(
       "0x0000000000000000000000000000000000000000"
@@ -264,7 +263,7 @@ describe("Pool Tests", function () {
     const trsModule = await TrsModule.deploy();
 
     await trsModule.deployed();
-    const TrsModuleAddress = await trsModule.address;
+    TrsModuleAddress = await trsModule.address;
 
     expect(TrsModuleAddress).to.not.equal(
       "0x0000000000000000000000000000000000000000"
