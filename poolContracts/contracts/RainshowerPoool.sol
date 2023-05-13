@@ -50,11 +50,11 @@ contract RainshowerPoool is Events {
 	}
 	
 	// Adds a new borrow adapter to the borrow key
-	function addAdapter (address _adapter, address _borrow) external {
+	function addAdapter (address _adapter, address _module) external {
 		if (msg.sender != governanceContract) {
 			revert Unauthorized();
 		}
-		dataAdapters[_borrow] = _adapter;
+		dataAdapters[_module] = _adapter;
 	}
 
 	function deposit (address _token, uint256 _amount) external {

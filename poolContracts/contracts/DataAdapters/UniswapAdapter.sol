@@ -12,5 +12,4 @@ contract UniswapDataAdapter {
             quoteAmount := mload(add(_data, 0x40))
         }
 	}
-
 }
