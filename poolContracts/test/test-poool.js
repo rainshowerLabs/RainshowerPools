@@ -178,6 +178,8 @@ const moduleABI = [
     }
   ]
 
+const tokenABI = require('../artifacts/contracts/PooolToken/PooolToken.sol/ERC20.json').abi;
+
 
 describe("Deploy RiskController", function () {
   it("Should deploy the RiskController contract", async function () {
@@ -210,7 +212,7 @@ describe("Deploy Factory", function () {
 describe("Deploy poool", function () {
   it("Should deploy the poool contract", async function () {
     const Poool = await ethers.getContractFactory("RainshowerPoool");
-    const poool = await Poool.deploy(riskAddress, factoryAddress);
+    poool = await Poool.deploy(riskAddress, factoryAddress);
     await poool.deployed();
 
     pooolAddress = await poool.address;
@@ -223,7 +225,7 @@ describe("Deploy poool", function () {
 describe("Add assets", function () {
   it("Should add assets to the poool", async function () {
     expect(await poool.addAsset(fWETH)).to.not.throw;
-    expec(await poool.addAsset(fUSDC)).to.not.throw;
+    expect(await poool.addAsset(fUSDC)).to.not.throw;
   });
 });
 
@@ -280,25 +282,28 @@ describe("Deploy adapters", function () {
 // Test deposit into poool
 describe("Deposit into poool", function () {
   it("Should deposit into the poool", async function () {
+    // Get fWETH contract with erc20 abi
+    token = await ethers.getContractAt(tokenABI, fWETH);
     // Approve the poool to spend the tokens
-    await fWETH.approve(pooolAddress, '10000');
+    await token.approve(pooolAddress, '10000');
     // Deposit fWETH into poool
     await poool.deposit(fWETH, '10000');
 
     // Check that the poool has the tokens
-    expect(await fWETH.balanceOf(pooolAddress)).to.equal('10000');
+    expect(await token.balanceOf(pooolAddress)).to.equal('10000');
     });
   });
 
 // Test withdraw from poool
 describe("Withdraw from poool", function () {
   it("Should withdraw from the poool", async function () {
+    token = await ethers.getContractAt(tokenABI, fWETH);
     // Revert if we try to withdraw too much
-    expect(await poool.withdraw(fWETH, '10001')).to.throw;
+    await expect(poool.withdraw(fWETH, '10001')).to.be.reverted;;
     // Withdraw fWETH from poool
     await poool.withdraw(fWETH, '10000');
     // Check that the poool has no tokens
-    expect(await fWETH.balanceOf(pooolAddress)).to.equal('0');
+    expect(await token.balanceOf(pooolAddress)).to.equal('0');
   });
 });
 
