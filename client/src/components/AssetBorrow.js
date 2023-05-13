@@ -1,4 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+// import { ethers } from "ethers"; // Updated import statement
+// import RainshowerPooolABI from "../abis/RainshowerPoool.json"; // Import ABI of the RainshowerPoool contract
+// import erc20Abi from "../abis/ERC20.json"; // Import ABI of the ERC20 contract
+
+// const abi = RainshowerPooolABI.abi;
+
+// const rainshowerPooolAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
+// const provider = new ethers.BrowserProvider(window.ethereum);
+// const rainshowerPooolContract = new ethers.Contract(
+//   rainshowerPooolAddress,
+//   abi,
+//   provider
+// );
 
 const AssetBorrow = ({ assets }) => {
   return (
