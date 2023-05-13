@@ -17,8 +17,10 @@ contract TotalReturnSwapDataAdapter {
         uint128 takerDeposit;
     }
 
-	function decode (bytes memory _data) public returns (params memory trs) {
-		trs = abi.decode(_data, (_data));
-		return trs;
+    function decode (bytes memory _data) public returns (address _quoteToken, uint128 _makerDeposit) {
+        params memory trs = abi.decode(_data, (params));
+        _quoteToken = trs.quoteToken;
+        _makerDeposit = trs.makerDeposit;
+        return (_quoteToken, _makerDeposit);
 	}	
 }
