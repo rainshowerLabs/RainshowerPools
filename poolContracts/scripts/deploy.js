@@ -1,25 +1,40 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 
+const testToken = {
+  tokenName: "Ether",
+  symbol: "ETH",
+  decimals: 1000000000,
+};
+const factoryAddress = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
+
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const [deployer] = await hre.ethers.getSigners();
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  console.log("Deploying contracts with the account:", deployer.address);
 
-  await greeter.deployed();
+  // Deploy Risk Controller
+  const RiskController = await hre.ethers.getContractFactory("RiskController");
+  const riskController = await RiskController.deploy();
 
-  console.log("Greeter deployed to:", greeter.address);
+  console.log("RiskController deployed to:", riskController.address);
+
+  // Deploy Rainshower Pool
+  const RainshowerPool = await hre.ethers.getContractFactory("RainshowerPoool");
+  const rainshowerPool = await RainshowerPool.deploy(
+    riskController.address,
+    factoryAddress
+  );
+
+  console.log("RainshowerPool deployed to:", rainshowerPool.address);
+
+  // Deploy poool token
+  const PooolToken = await hre.ethers.getContractFactory("PooolToken");
+  const pooolToken = await PooolToken.deploy(
+    testToken.tokenName,
+    testToken.symbol
+  );
+
+  console.log("PooolToken deployed to:", pooolToken.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

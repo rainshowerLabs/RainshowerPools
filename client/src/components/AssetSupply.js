@@ -1,6 +1,43 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import RainshowerPooolABI from "../abis/RainshowerPoool.json"; // Import ABI of the RainshowerPoool contract
+
+const rainshowerPooolAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
+const provider = new ethers.BrowserProvider(window.ethereum);
+const rainshowerPooolContract = new ethers.Contract(
+  rainshowerPooolAddress,
+  RainshowerPooolABI,
+  provider
+);
 
 const AssetSupply = ({ assets }) => {
+  const [assetData, setAssetData] = useState([]);
+
+  useEffect(() => {
+    const fetchAssetData = async () => {
+      const assetPromises = assets.map(async (asset) => {
+        const walletBalance = await rainshowerPooolContract.walletBalance(
+          asset.id
+        );
+        const totalSupply = await rainshowerPooolContract.totalSupply(asset.id);
+        const borrowRate = await rainshowerPooolContract.borrowRate(asset.id);
+
+        return {
+          id: asset.id,
+          name: asset.name,
+          walletBalance: walletBalance.toString(),
+          totalSupply: totalSupply.toString(),
+          borrowRate: borrowRate.toString(),
+        };
+      });
+
+      const assetData = await Promise.all(assetPromises);
+      setAssetData(assetData);
+    };
+
+    fetchAssetData();
+  }, [assets]);
+
   return (
     <main className="container mx-auto p-4">
       <table className="min-w-full divide-y divide-gray-200">

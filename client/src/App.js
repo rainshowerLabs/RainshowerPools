@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./index.css";
 import Navbar from "./components/Navbar";
 import MainContent from "./components/MainContent";
-import RainshowerContract from "./RainshowerContract.json";
+import RainshowerContract from "./abis/RainshowerContract.json";
 
 // Import the ethers library
 import { ethers } from "ethers";
