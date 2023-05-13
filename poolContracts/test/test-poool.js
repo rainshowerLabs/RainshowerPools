@@ -370,7 +370,7 @@ describe("Pool Tests", function () {
       signer
     );
 
-    const factory = await Factory.deploy();
+    factory = await Factory.deploy();
 
     await factory.deployed();
     factoryAddress = await factory.address;
@@ -514,7 +514,11 @@ describe("Pool Tests", function () {
                          uint24 poolFee, uint32 period, uint80 maintanenceMargin,
                          address swapRouterAddress, address pool)` ], rawBorrowData)
 
-    expect(await poool.getQuote(UniModuleAddress, data)).to.be.reverted;
+    await poool.getQuote(UniModuleAddress, data)
+
+    latestBorrow = await factory.latestBorrow()
+
+    expect(latestBorrow.quoteToken).to.not.equal('0x0000000000000000000000000000000000000000')
   });
 
   // it("Should get interest rates", async function () {
