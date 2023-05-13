@@ -593,7 +593,15 @@ describe("Pool Tests", function () {
 
     // create new borrow instance
     const borrow = await ethers.getContractAt(BorrowABI, latestBorrow, signer);
-    await borrow.fundWithMarginAndOpen('1000', {gasLimit: 10000000});
+    await borrow.fundWithMarginAndOpen('10000000');
+  });
+
+  it("Should close", async function () {
+    const [signer] = await ethers.getSigners();
+
+    // create new borrow instance
+    const borrow = await ethers.getContractAt(BorrowABI, latestBorrow, signer);
+    await borrow.close();
   });
 
 });
