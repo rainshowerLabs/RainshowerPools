@@ -33,6 +33,12 @@ contract RainshowerPoool is Events {
 	// This is horrible, but i dont want to deal with events
 	uint256 public latestRate;
 
+	// Interest rate params
+	uint256 immutable utilizationRate = 800000000000000000;
+	uint256 immutable baseRate = 0;
+	uint256 immutable slope0 = 20000000000000000;
+
+
 	constructor(address _riskController, address _factory) {
 		riskController = IRiskController(_riskController);
 		governanceContract = msg.sender;
@@ -97,10 +103,18 @@ contract RainshowerPoool is Events {
 		uint256 _utilization = FPML.divWadUp(_poolBalance, _totalSupply);
 
 		uint256 _rate;
-		if (_utilization > 800000000000000000) {
-			_rate = FPML.mulWadUp(FPML.divWadUp(_utilization, 800000000000000000), 20000000000000000);
+		if (_utilization > utilizationRate) {
+			_rate = baseRate + FPML.mulWadUp(FPML.divWadUp(_utilization, utilizationRate), slope0);
 		} else {
-			_rate = 1000000000000000000 + FPML.mulWadUp(FPML.divWadUp((_utilization-800000000000000000), 20000000000000000), 20000000000000000);
+			_rate = 1000000000000000000 + baseRate + 
+			FPML.mulWadUp (
+				FPML.divWadUp (
+					(
+						_utilization - utilizationRate),
+						slope0
+					),
+				slope0
+			);
 
 		}
 
