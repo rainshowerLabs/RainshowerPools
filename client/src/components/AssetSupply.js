@@ -1,22 +1,60 @@
 import React, { useEffect, useState } from "react";
-// import { ethers } from "ethers"; // Updated import statement
-// import RainshowerPooolABI from "../abis/RainshowerPoool.json"; // Import ABI of the RainshowerPoool contract
-// import erc20 from "../abis/ERC20.json"; // Import ABI of the ERC20 contract
-// import pooolToken from "../abis/PooolToken.json";
+import { ethers, formatUnits } from "ethers";
+import erc20 from "../abis/ERC20.json";
+import SupplyModal from "./SupplyModal";
+import RainshowerPoool from "../abis/RainshowerPoool.json";
 
-// const pooolAbi = RainshowerPooolABI.abi;
-// const erc20Abi = erc20.abi;
-// const realPooolAbi = pooolToken.abi;
+const WETHContractAddress = "0x666E4018aD77127E3273bA391C60a60AD7244451";
+const provider = new ethers.BrowserProvider(window.ethereum);
+const WETHContract = new ethers.Contract(
+  WETHContractAddress,
+  erc20.abi,
+  provider
+);
 
-// const rainshowerPooolAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
-// const provider = new ethers.BrowserProvider(window.ethereum);
-// const rainshowerPooolContract = new ethers.Contract(
-//   rainshowerPooolAddress,
-//   RainshowerPooolABI,
-//   provider
-// );
+const USDCContractAddress = "0x5345ed0c3D495077A47Bb06b9E61983C4949cC1D";
+const USDCContract = new ethers.Contract(
+  USDCContractAddress,
+  erc20.abi,
+  provider
+);
 
-const AssetSupply = ({ assets }) => {
+const AssetSupply = ({ assets, contract }) => {
+  const [WETHBalance, setWETHBalance] = useState(0);
+  const [USDCBalance, setUSDCBalance] = useState(0);
+  const [isSupplyModalOpen, setIsSupplyModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchWETHBalance = async () => {
+      try {
+        const [userAccount] = await provider.send("eth_requestAccounts");
+        const balance = await WETHContract.balanceOf(userAccount);
+        const balanceInEther = parseFloat(balance.toString()).toFixed(2);
+        setWETHBalance(balanceInEther);
+      } catch (error) {
+        console.error("Error fetching WETH balance:", error);
+      }
+    };
+
+    const fetchUSDCBalance = async () => {
+      try {
+        const [userAccount] = await provider.send("eth_requestAccounts");
+        const balance = await USDCContract.balanceOf(userAccount);
+        const balanceInUSDC = parseFloat(formatUnits(balance, 6)).toFixed(2); // USDC has 6 decimal places
+        setUSDCBalance(balanceInUSDC);
+      } catch (error) {
+        console.error("Error fetching USDC balance:", error);
+      }
+    };
+
+    fetchWETHBalance();
+    fetchUSDCBalance();
+  }, []);
+
+  const handleClose = () => {
+    setIsSupplyModalOpen(false);
+  };
+
   return (
     <main className="container mx-auto p-4">
       <table className="min-w-full divide-y divide-gray-200">
@@ -45,7 +83,11 @@ const AssetSupply = ({ assets }) => {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">
-                  {asset.walletBalance}
+                  {asset.id === 1
+                    ? WETHBalance.toString()
+                    : asset.id === 2
+                    ? USDCBalance.toString()
+                    : asset.walletBalance}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -55,9 +97,11 @@ const AssetSupply = ({ assets }) => {
                 <div className="text-sm text-gray-900">{asset.borrowRate}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <button className="bg-blue-600 text-white py-2 px-4 rounded-full hover:bg-blue-700">
-                  Supply
-                </button>
+                <SupplyModal
+                  open={isSupplyModalOpen}
+                  onClose={handleClose}
+                  contract={contract}
+                />
               </td>
             </tr>
           ))}

@@ -1,0 +1,711 @@
+
+
+// Sources flattened with hardhat v2.14.0 https://hardhat.org
+
+// File contracts/DataAdapters/IAdapter.sol
+
+pragma solidity ^0.8.0;
+
+interface IAdapter {
+	function decode (bytes memory _data) external returns (address, uint128);
+}
+
+
+// File contracts/Events.sol
+
+pragma solidity ^0.8.0;
+
+contract Events {
+	event getQuoteEvent(address _quote);
+}
+
+
+// File contracts/interface/IRainshowerBorrow.sol
+
+pragma solidity >=0.7.0;
+
+interface IRainshowerBorrow {
+    function fundWithTokens () external payable;
+    function fundWithMarginAndOpen (uint256 _extraMargin) external payable;
+    function close () external payable;
+}
+
+
+// File contracts/interface/IRainshowerFactory.sol
+
+pragma solidity ^0.8.0;
+
+interface IRainshowerFactory {
+	function createBorrow(
+		address _moduleAddress,
+		uint64 _expiry,
+		bytes memory _data
+	) external returns (address _borrowAddress);
+	function isValidBorrow(address _address) external view returns (bool);
+}
+
+
+// File contracts/lib/FixedPointMathLib.sol
+
+pragma solidity >=0.8.0;
+
+/// @notice Arithmetic library with operations for fixed-point numbers.
+/// @author Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/utils/FixedPointMathLib.sol)
+/// @author Inspired by USM (https://github.com/usmfum/USM/blob/master/contracts/WadMath.sol)
+library FixedPointMathLib {
+    /*//////////////////////////////////////////////////////////////
+                    SIMPLIFIED FIXED POINT OPERATIONS
+    //////////////////////////////////////////////////////////////*/
+
+    uint256 internal constant WAD = 1e18; // The scalar of ETH and most ERC20s.
+
+    function mulWadDown(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivDown(x, y, WAD); // Equivalent to (x * y) / WAD rounded down.
+    }
+
+    function mulWadUp(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivUp(x, y, WAD); // Equivalent to (x * y) / WAD rounded up.
+    }
+
+    function divWadDown(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivDown(x, WAD, y); // Equivalent to (x * WAD) / y rounded down.
+    }
+
+    function divWadUp(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivUp(x, WAD, y); // Equivalent to (x * WAD) / y rounded up.
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    LOW LEVEL FIXED POINT OPERATIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function mulDivDown(
+        uint256 x,
+        uint256 y,
+        uint256 denominator
+    ) internal pure returns (uint256 z) {
+        assembly {
+            // Store x * y in z for now.
+            z := mul(x, y)
+
+            // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
+            if iszero(and(iszero(iszero(denominator)), or(iszero(x), eq(div(z, x), y)))) {
+                revert(0, 0)
+            }
+
+            // Divide z by the denominator.
+            z := div(z, denominator)
+        }
+    }
+
+    function mulDivUp(
+        uint256 x,
+        uint256 y,
+        uint256 denominator
+    ) internal pure returns (uint256 z) {
+        assembly {
+            // Store x * y in z for now.
+            z := mul(x, y)
+
+            // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
+            if iszero(and(iszero(iszero(denominator)), or(iszero(x), eq(div(z, x), y)))) {
+                revert(0, 0)
+            }
+
+            // First, divide z - 1 by the denominator and add 1.
+            // We allow z - 1 to underflow if z is 0, because we multiply the
+            // end result by 0 if z is zero, ensuring we return 0 if z is zero.
+            z := mul(iszero(iszero(z)), add(div(sub(z, 1), denominator), 1))
+        }
+    }
+
+    function rpow(
+        uint256 x,
+        uint256 n,
+        uint256 scalar
+    ) internal pure returns (uint256 z) {
+        assembly {
+            switch x
+            case 0 {
+                switch n
+                case 0 {
+                    // 0 ** 0 = 1
+                    z := scalar
+                }
+                default {
+                    // 0 ** n = 0
+                    z := 0
+                }
+            }
+            default {
+                switch mod(n, 2)
+                case 0 {
+                    // If n is even, store scalar in z for now.
+                    z := scalar
+                }
+                default {
+                    // If n is odd, store x in z for now.
+                    z := x
+                }
+
+                // Shifting right by 1 is like dividing by 2.
+                let half := shr(1, scalar)
+
+                for {
+                    // Shift n right by 1 before looping to halve it.
+                    n := shr(1, n)
+                } n {
+                    // Shift n right by 1 each iteration to halve it.
+                    n := shr(1, n)
+                } {
+                    // Revert immediately if x ** 2 would overflow.
+                    // Equivalent to iszero(eq(div(xx, x), x)) here.
+                    if shr(128, x) {
+                        revert(0, 0)
+                    }
+
+                    // Store x squared.
+                    let xx := mul(x, x)
+
+                    // Round to the nearest number.
+                    let xxRound := add(xx, half)
+
+                    // Revert if xx + half overflowed.
+                    if lt(xxRound, xx) {
+                        revert(0, 0)
+                    }
+
+                    // Set x to scaled xxRound.
+                    x := div(xxRound, scalar)
+
+                    // If n is even:
+                    if mod(n, 2) {
+                        // Compute z * x.
+                        let zx := mul(z, x)
+
+                        // If z * x overflowed:
+                        if iszero(eq(div(zx, x), z)) {
+                            // Revert if x is non-zero.
+                            if iszero(iszero(x)) {
+                                revert(0, 0)
+                            }
+                        }
+
+                        // Round to the nearest number.
+                        let zxRound := add(zx, half)
+
+                        // Revert if zx + half overflowed.
+                        if lt(zxRound, zx) {
+                            revert(0, 0)
+                        }
+
+                        // Return properly scaled zxRound.
+                        z := div(zxRound, scalar)
+                    }
+                }
+            }
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        GENERAL NUMBER UTILITIES
+    //////////////////////////////////////////////////////////////*/
+
+    function sqrt(uint256 x) internal pure returns (uint256 z) {
+        assembly {
+            // Start off with z at 1.
+            z := 1
+
+            // Used below to help find a nearby power of 2.
+            let y := x
+
+            // Find the lowest power of 2 that is at least sqrt(x).
+            if iszero(lt(y, 0x100000000000000000000000000000000)) {
+                y := shr(128, y) // Like dividing by 2 ** 128.
+                z := shl(64, z) // Like multiplying by 2 ** 64.
+            }
+            if iszero(lt(y, 0x10000000000000000)) {
+                y := shr(64, y) // Like dividing by 2 ** 64.
+                z := shl(32, z) // Like multiplying by 2 ** 32.
+            }
+            if iszero(lt(y, 0x100000000)) {
+                y := shr(32, y) // Like dividing by 2 ** 32.
+                z := shl(16, z) // Like multiplying by 2 ** 16.
+            }
+            if iszero(lt(y, 0x10000)) {
+                y := shr(16, y) // Like dividing by 2 ** 16.
+                z := shl(8, z) // Like multiplying by 2 ** 8.
+            }
+            if iszero(lt(y, 0x100)) {
+                y := shr(8, y) // Like dividing by 2 ** 8.
+                z := shl(4, z) // Like multiplying by 2 ** 4.
+            }
+            if iszero(lt(y, 0x10)) {
+                y := shr(4, y) // Like dividing by 2 ** 4.
+                z := shl(2, z) // Like multiplying by 2 ** 2.
+            }
+            if iszero(lt(y, 0x8)) {
+                // Equivalent to 2 ** z.
+                z := shl(1, z)
+            }
+
+            // Shifting right by 1 is like dividing by 2.
+            z := shr(1, add(z, div(x, z)))
+            z := shr(1, add(z, div(x, z)))
+            z := shr(1, add(z, div(x, z)))
+            z := shr(1, add(z, div(x, z)))
+            z := shr(1, add(z, div(x, z)))
+            z := shr(1, add(z, div(x, z)))
+            z := shr(1, add(z, div(x, z)))
+
+            // Compute a rounded down version of z.
+            let zRoundDown := div(x, z)
+
+            // If zRoundDown is smaller, use it.
+            if lt(zRoundDown, z) {
+                z := zRoundDown
+            }
+        }
+    }
+}
+
+
+// File contracts/PooolToken/PooolToken.sol
+
+pragma solidity ^0.8.0;
+
+/// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
+/// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
+/// @author Modified from Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
+/// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
+abstract contract ERC20 {
+    /*//////////////////////////////////////////////////////////////
+                                 EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+
+    event Approval(address indexed owner, address indexed spender, uint256 amount);
+
+    /*//////////////////////////////////////////////////////////////
+                            METADATA STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    string public name;
+
+    string public symbol;
+
+    uint8 public immutable decimals;
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC20 STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    /*//////////////////////////////////////////////////////////////
+                            EIP-2612 STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    uint256 internal immutable INITIAL_CHAIN_ID;
+
+    bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
+
+    mapping(address => uint256) public nonces;
+
+    /*//////////////////////////////////////////////////////////////
+                               CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals
+    ) {
+        name = _name;
+        symbol = _symbol;
+        decimals = _decimals;
+
+        INITIAL_CHAIN_ID = block.chainid;
+        INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                               ERC20 LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function approve(address spender, uint256 amount) public virtual returns (bool) {
+        allowance[msg.sender][spender] = amount;
+
+        emit Approval(msg.sender, spender, amount);
+
+        return true;
+    }
+
+    function transfer(address to, uint256 amount) public virtual returns (bool) {
+        balanceOf[msg.sender] -= amount;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            balanceOf[to] += amount;
+        }
+
+        emit Transfer(msg.sender, to, amount);
+
+        return true;
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual returns (bool) {
+        uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
+
+        if (allowed != type(uint256).max) allowance[from][msg.sender] = allowed - amount;
+
+        balanceOf[from] -= amount;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            balanceOf[to] += amount;
+        }
+
+        emit Transfer(from, to, amount);
+
+        return true;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                             EIP-2612 LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public virtual {
+        require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
+
+        // Unchecked because the only math done is incrementing
+        // the owner's nonce which cannot realistically overflow.
+        unchecked {
+            address recoveredAddress = ecrecover(
+                keccak256(
+                    abi.encodePacked(
+                        "\x19\x01",
+                        DOMAIN_SEPARATOR(),
+                        keccak256(
+                            abi.encode(
+                                keccak256(
+                                    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+                                ),
+                                owner,
+                                spender,
+                                value,
+                                nonces[owner]++,
+                                deadline
+                            )
+                        )
+                    )
+                ),
+                v,
+                r,
+                s
+            );
+
+            require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
+
+            allowance[recoveredAddress][spender] = value;
+        }
+
+        emit Approval(owner, spender, value);
+    }
+
+    function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
+        return block.chainid == INITIAL_CHAIN_ID ? INITIAL_DOMAIN_SEPARATOR : computeDomainSeparator();
+    }
+
+    function computeDomainSeparator() internal view virtual returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                    keccak256(bytes(name)),
+                    keccak256("1"),
+                    block.chainid,
+                    address(this)
+                )
+            );
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        INTERNAL MINT/BURN LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function _mint(address to, uint256 amount) internal virtual {
+        totalSupply += amount;
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            balanceOf[to] += amount;
+        }
+
+        emit Transfer(address(0), to, amount);
+    }
+
+    function _burn(address from, uint256 amount) internal virtual {
+        balanceOf[from] -= amount;
+
+        // Cannot underflow because a user's balance
+        // will never be larger than the total supply.
+        unchecked {
+            totalSupply -= amount;
+        }
+
+        emit Transfer(from, address(0), amount);
+    }
+}
+
+contract PooolToken is ERC20 {
+
+	address public governance;
+
+	// Errors
+	error Unauthorized();
+
+	constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol, 18) {
+		governance = msg.sender;
+	}
+
+	function mint(address _to, uint256 _amount) external {
+		if (msg.sender != governance) {
+			revert Unauthorized();
+		}
+
+		_mint(_to, _amount);
+	}
+
+	function burn(address _to, uint256 _amount) external {
+		if (msg.sender != governance) {
+			revert Unauthorized();
+		}
+
+		_burn(_to, _amount);
+	}
+}
+
+
+// File contracts/RiskController/interface/IRiskController.sol
+
+pragma solidity ^0.8.0;
+
+interface IRiskController {
+	function assessPair (address _uniswapPair) external pure returns(bool);
+}
+
+
+// File contracts/RainshowerPoool.sol
+
+pragma solidity ^0.8.0;
+
+/**
+ * The RainshowerPoool manages lending
+ */
+contract RainshowerPoool is Events {
+
+	// Errors
+	error Risk();
+	error PooolDoesNotExist();
+	error Unauthorized();
+
+	// Risk controller gives you a go/no go if you can open a borrow
+	IRiskController public riskController;
+	// Factory address
+	IRainshowerFactory public factory;
+	// DAO
+	address public governanceContract;
+	// Interest bearing tokens
+	mapping (address => address) pooolTokenContracts;
+	// Adapters to decode module data
+	mapping (address => address) dataAdapters;
+	// This is horrible, but i dont want to deal with events
+	uint256 public latestRate;
+
+	constructor(address _riskController, address _factory) {
+		riskController = IRiskController(_riskController);
+		governanceContract = msg.sender;
+		factory = IRainshowerFactory(_factory);
+	}
+
+	// Adds a new token and deploys new PooolToken for that asset
+	function addAsset (address _asset) external {
+		if (msg.sender != governanceContract) {
+			revert Unauthorized();
+		}
+		// Get the name of the `_asset` and add a `r` in front
+		string memory _name = string(abi.encodePacked("r", PooolToken(_asset).name()));
+		// Get the symbol of the `_asset` and add a `r` in front
+		string memory _symbol = string(abi.encodePacked("r", PooolToken(_asset).symbol()));
+
+		PooolToken newToken = new PooolToken(_name, _symbol);
+		pooolTokenContracts[_asset] = address(newToken);
+	}
+	
+	// Adds a new borrow adapter to the borrow key
+	function addAdapter (address _adapter, address _module) external {
+		if (msg.sender != governanceContract) {
+			revert Unauthorized();
+		}
+		dataAdapters[_module] = _adapter;
+	}
+
+	function deposit (address _token, uint256 _amount) external {
+		// Get the Poool token address of the token we're depositing
+		address _pooolToken = pooolTokenContracts[_token];
+		if (_pooolToken == address(0)) {
+			revert PooolDoesNotExist();
+		}
+		// Transferfrom the msg.sender to this contract
+		PooolToken(_token).transferFrom(msg.sender, address(this), _amount);
+		
+		// Mint the _amount to the msg.sender
+		PooolToken(_pooolToken).mint(msg.sender, _amount);
+	}
+
+	function withdraw (address _token, uint256 _amount) external {
+		// Get the Poool token address of the token we're depositing
+		address _pooolToken = pooolTokenContracts[_token];
+		if (_pooolToken == address(0)) {
+			revert PooolDoesNotExist();
+		}
+
+		// Burn the _amount to the msg.sender
+		PooolToken(_pooolToken).burn(msg.sender, _amount);
+
+		// Transferfrom the msg.sender to this contract
+		PooolToken(_token).transfer(msg.sender, _amount);
+	}
+
+	function getRates (address _token) public returns(uint256) {
+		// Gets the balanceOf address(this) of the `_token`
+		uint256 _poolBalance = PooolToken(_token).balanceOf(address(this));
+		// Gets the totalSupply of the `_token`
+		uint256 _totalSupply = PooolToken(pooolTokenContracts[_token]).totalSupply();
+		// Divide `_poolBalance` by `_totalSupply` to get the utilizatio 
+		uint256 _utilization = FPML.divWadUp(_poolBalance, _totalSupply);
+
+		uint256 _rate;
+		if (_utilization > 800000000000000000) {
+			_rate = FPML.mulWadUp(FPML.divWadUp(_utilization, 800000000000000000), 20000000000000000);
+		} else {
+			_rate = 1000000000000000000 + FPML.mulWadUp(FPML.divWadUp((_utilization-800000000000000000), 20000000000000000), 20000000000000000);
+
+		}
+
+		latestRate = _rate;
+
+		return _rate;
+	}
+
+	function getQuote (
+		address _module,
+		bytes memory _borrowData
+		) external returns(address _res) {
+
+		// Get the adapter address
+		address _adapter = dataAdapters[_module];
+		// Call the adapter with the borrow data
+		// TODO: implement adapters.
+		(address _borrowToken, uint128 _borrowTokenAmount) = IAdapter(_adapter).decode(_borrowData);
+
+		// Call RiskController to see if we can open a position with the data
+		// funny address
+		if (!riskController.assessPair(address(0))) {
+			revert Risk();
+		}
+
+		// Call factory to create borrow with data
+		_res = IRainshowerFactory(factory).createBorrow(_module, type(uint64).max, _borrowData);
+
+		// Approve the borrow
+		PooolToken(_borrowToken).approve(_res, _borrowTokenAmount);
+
+		IRainshowerBorrow(_res).fundWithTokens();
+
+		emit getQuoteEvent(_res);
+		return _res;
+	}
+}
+
+
+// File contracts/DataAdapters/TotalReturnSwapAdapter.sol
+
+pragma solidity ^0.8.0;
+
+contract TotalReturnSwapDataAdapter {
+    struct params {
+        address marginToken;
+        address quoteToken; // this
+        address oracleAddress;
+        uint32 period;
+        // Expressed as a minimum of how much the taker deposit can be 
+        // swaped to the quote token.
+        uint80 maintanenceMargin;
+        uint56 initialDepositTimestamp;
+        uint88 hourlyTakerFee;
+        uint256 entryPrice;
+        uint128 makerDeposit; // this
+        uint128 takerDeposit;
+    }
+
+    function decode (bytes memory _data) public pure returns (address _quoteToken, uint128 _makerDeposit) {
+        params memory trs = abi.decode(_data, (params));
+        _quoteToken = trs.quoteToken;
+        _makerDeposit = trs.makerDeposit;
+        return (_quoteToken, _makerDeposit);
+	}	
+}
+
+
+// File contracts/DataAdapters/UniswapAdapter.sol
+
+pragma solidity ^0.8.0;
+
+
+contract UniswapDataAdapter {
+
+	function decode(
+		bytes memory _data
+	) public pure returns (address quoteToken, uint256 quoteAmount) {
+		assembly {
+            quoteToken := mload(add(_data, 0x20))
+            quoteAmount := mload(add(_data, 0x40))
+        }
+	}
+}
+
+
+// File contracts/RiskController/RiskController.sol
+
+pragma solidity ^0.8.0;
+
+/**
+ * The RiskController asseses risk kinda
+ */
+contract RiskController {
+	function assessPair (address _uniswapPair) external pure returns(bool) {
+		return true;
+	}
+}
